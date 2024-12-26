@@ -9,8 +9,10 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "bootstrap": "^5.3.3",
     "next": "15.1.2",
     "react": "^19.0.0",
+    "react-bootstrap": "^2.10.7",
     "react-dom": "^19.0.0",
     "react-player": "^2.16.0",
     "react-record-webcam": "^1.1.5",
