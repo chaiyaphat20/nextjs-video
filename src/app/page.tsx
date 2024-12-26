@@ -1,5 +1,4 @@
 'use client'
-
 import React, { useRef, useState } from "react";
 import Webcam from "react-webcam";
 
@@ -14,43 +13,47 @@ const VideoRecorder: React.FC = () => {
     facingMode: "environment",
   };
 
-  // Start Recording
+  const getSupportedMimeType = (): string | undefined => {
+    const possibleTypes = ["video/webm;codecs=vp8", "video/mp4"];
+    return possibleTypes.find((type) => MediaRecorder.isTypeSupported(type));
+  };
+
   const startRecording = () => {
     const stream = webcamRef.current?.stream;
 
     if (stream) {
-      const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: "video/webm",
-      });
+      const mimeType = getSupportedMimeType() || "";
+      try {
+        const mediaRecorder = new MediaRecorder(stream, { mimeType });
+        mediaRecorder.ondataavailable = (event) => {
+          if (event.data.size > 0) {
+            setCapturedChunks((prevChunks) => [...prevChunks, event.data]);
+          }
+        };
 
-      mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          setCapturedChunks((prevChunks) => [...prevChunks, event.data]);
-        }
-      };
-
-      mediaRecorder.start();
-      mediaRecorderRef.current = mediaRecorder;
-      setIsRecording(true);
+        mediaRecorder.start();
+        mediaRecorderRef.current = mediaRecorder;
+        setIsRecording(true);
+      } catch (err) {
+        console.error("Failed to start MediaRecorder:", err);
+      }
     } else {
       console.error("Webcam stream not available");
     }
   };
 
-  // Stop Recording
   const stopRecording = () => {
     mediaRecorderRef.current?.stop();
     setIsRecording(false);
   };
 
-  // Download Recorded Video
   const downloadVideo = () => {
     if (capturedChunks.length > 0) {
-      const blob = new Blob(capturedChunks, { type: "video/webm" });
+      const blob = new Blob(capturedChunks, { type: "video/mp4" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = "recorded-video.webm";
+      a.download = "recorded-video.mp4";
       a.click();
       URL.revokeObjectURL(url);
     } else {
